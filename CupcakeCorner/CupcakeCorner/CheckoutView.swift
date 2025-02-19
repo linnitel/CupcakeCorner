@@ -11,7 +11,9 @@ struct CheckoutView: View {
 	var order: Order
 
 	@State private var confirmationMessage = ""
-	@State private var showingConfirmation = false
+	@State private var alertMassage = ""
+	@State private var showAlert = false
+	@State private var activeAlert: ActiveAlert = .first
 
     var body: some View {
 		ScrollView {
@@ -39,10 +41,13 @@ struct CheckoutView: View {
 		.navigationTitle("Check out")
 		.navigationBarTitleDisplayMode(.inline)
 		.scrollBounceBehavior(.basedOnSize)
-		.alert("Thank you!", isPresented: $showingConfirmation) {
-
-		} message: {
-			Text(confirmationMessage)
+		.alert(isPresented: $showAlert) {
+			switch activeAlert {
+				case .first:
+					return Alert(title: Text("Thank you!"), message: Text(confirmationMessage))
+				case .second:
+					return Alert(title: Text("Network error"), message: Text(alertMassage))
+			}
 		}
     }
 
@@ -62,11 +67,18 @@ struct CheckoutView: View {
 
 			let decodedQuantity = try JSONDecoder().decode(Order.self, from: data)
 			confirmationMessage = "Your order for \(decodedQuantity.quantity)x \(Order.types[decodedQuantity.type].lowercased()) cupcakes is on the way. Thank you!"
-			showingConfirmation = true
+			showAlert = true
+			self.activeAlert = .first
 		} catch {
-			print("Checkout failed: \(error.localizedDescription)")
+			alertMassage = "Checkout failed: \(error.localizedDescription)"
+			showAlert = true
+			self.activeAlert = .second
 		}
 	}
+}
+
+enum ActiveAlert {
+	case first, second
 }
 
 #Preview {
