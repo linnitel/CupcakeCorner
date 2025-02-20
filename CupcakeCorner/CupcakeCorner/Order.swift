@@ -7,6 +7,13 @@
 
 import Foundation
 
+struct Customer: Codable {
+	var name: String = ""
+	var streetAddress: String = ""
+	var city: String = ""
+	var zip: String = ""
+}
+
 @Observable
 class Order: Codable {
 	enum CodingKeys: String, CodingKey {
@@ -15,13 +22,11 @@ class Order: Codable {
 		case _specialRequestEnabled = "specialRequestEnabled"
 		case _extraFrosting = "extraFrosting"
 		case _addSprinkles = "addSprinkles"
-		case _name = "name"
-		case _city = "city"
-		case _streetAddress = "streetAddress"
-		case _zip = "zip"
+		case _customer = "customer"
 	}
 
 	static let types = ["Vanilla", "Strawberry", "Chocolate", "Rainbow"]
+	private let saveKey = "SavedData"
 
 	var type = 0
 	var quantity = 3
@@ -37,17 +42,37 @@ class Order: Codable {
 	var extraFrosting = false
 	var addSprinkles = false
 
-	var name = ""
-	var streetAddress = ""
-	var city = ""
-	var zip = ""
+	var customer: Customer
+
+	init(type: Int = 0, quantity: Int = 3, specialRequestEnabled: Bool = false, extraFrosting: Bool = false, addSprinkles: Bool = false) {
+		self.type = type
+		self.quantity = quantity
+		self.specialRequestEnabled = specialRequestEnabled
+		self.extraFrosting = extraFrosting
+		self.addSprinkles = addSprinkles
+
+		if let data = UserDefaults.standard.data(forKey: saveKey) {
+			if let decoded = try? JSONDecoder().decode(Customer.self, from: data) {
+				customer = decoded
+				return
+			}
+		}
+
+		customer = Customer()
+	}
 
 	var hasValidAddress: Bool {
-		if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || streetAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || city.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || zip.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+		if customer.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || customer.streetAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || customer.city.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || customer.zip.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
 			return false
 		}
 
 		return true
+	}
+
+	func save() {
+		if let encoded = try? JSONEncoder().encode(customer) {
+			UserDefaults.standard.set(encoded, forKey: saveKey)
+		}
 	}
 
 	var cost: Decimal {
