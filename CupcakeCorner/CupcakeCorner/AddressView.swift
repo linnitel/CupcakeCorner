@@ -21,8 +21,7 @@ struct AddressView: View {
 
 			Section {
 				NavigationLink(destination: {
-					order.save()
-					return CheckoutView(order: order)
+					CheckoutView(order: order)
 				}, label: {
 					Text("Check out")
 				})

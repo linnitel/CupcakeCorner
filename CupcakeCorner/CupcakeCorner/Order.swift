@@ -42,7 +42,11 @@ class Order: Codable {
 	var extraFrosting = false
 	var addSprinkles = false
 
-	var customer: Customer
+	var customer: Customer {
+		didSet {
+			save()
+		}
+	}
 
 	init(type: Int = 0, quantity: Int = 3, specialRequestEnabled: Bool = false, extraFrosting: Bool = false, addSprinkles: Bool = false) {
 		self.type = type
